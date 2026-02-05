@@ -4,74 +4,74 @@ const Content = require("../models/Content");
 
 // GET landing page content
 router.get("/content", async (req, res) => {
-  try {
-    let data = await Content.findOne();
+  let data = await Content.findOne();
 
-    // Create default content if DB is empty
-    if (!data) {
-      data = await Content.create({
-        hero: {
-          title: "Welcome",
-          subtitle: "Your journey starts here",
-          image: "https://picsum.photos/1200/800",
-        },
-        about: {
-          title: "About Us",
-          description: "Simple MERN landing page.",
-        },
-        offers: [
-          { title: "Offer 1", description: "Description 1" },
-          { title: "Offer 2", description: "Description 2" },
-          { title: "Offer 3", description: "Description 3" },
-        ],
-      });
-    }
-
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  // create default data if not exists
+  if (!data) {
+    data = await Content.create({
+      hero: {
+        title: "Welcome",
+        subtitle: "Your journey starts here",
+        image: "https://picsum.photos/1200/800",
+      },
+      about: {
+        title: "About Us",
+        description: "Simple MERN landing page.",
+      },
+      offers: [
+        { title: "Offer 1", description: "Description 1" },
+        { title: "Offer 2", description: "Description 2" },
+        { title: "Offer 3", description: "Description 3" },
+      ],
+    });
   }
+
+  res.json(data);
 });
 
-// UPDATE offers
-router.put("/offers", async (req, res) => {
-  try {
-    const { offers } = req.body;
+/*
+========================================
+PUT HERO SECTION
+========================================
+*/
+router.put("/content/hero", async (req, res) => {
+  const content = await Content.findOne();
+  if (!content) return res.status(404).json({ message: "Content not found" });
 
-    // Validate input
-    if (!offers || !Array.isArray(offers)) {
-      return res.status(400).json({ message: "Offers must be an array" });
-    }
+  content.hero = req.body;
+  await content.save();
 
-    // Find first content document and update offers
-    const updatedContent = await Content.findOneAndUpdate(
-      {}, // find the single landing page document
-      { offers }, // replace offers array
-      { new: true }, // return updated document
-    );
+  res.json({ message: "Hero updated", hero: content.hero });
+});
 
-    // If no content exists yet, create it
-    if (!updatedContent) {
-      const created = await Content.create({
-        hero: {
-          title: "Welcome",
-          subtitle: "Your journey starts here",
-          image: "https://picsum.photos/1200/800",
-        },
-        about: {
-          title: "About Us",
-          description: "Simple MERN landing page.",
-        },
-        offers,
-      });
+/*
+========================================
+PUT ABOUT SECTION
+========================================
+*/
+router.put("/content/about", async (req, res) => {
+  const content = await Content.findOne();
+  if (!content) return res.status(404).json({ message: "Content not found" });
 
-      return res.json(created);
-    }
+  content.about = req.body;
+  await content.save();
 
-    res.json(updatedContent);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  res.json({ message: "About updated", about: content.about });
+});
+
+/*
+========================================
+PUT OFFERS SECTION
+========================================
+*/
+router.put("/content/offers", async (req, res) => {
+  const content = await Content.findOne();
+  if (!content) return res.status(404).json({ message: "Content not found" });
+
+  content.offers = req.body; // must be array
+  await content.save();
+
+  res.json({ message: "Offers updated", offers: content.offers });
 });
 
 module.exports = router;
